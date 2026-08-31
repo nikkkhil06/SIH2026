@@ -1,0 +1,66 @@
+{
+    "model_name": "fuel_consumption_random_forest",
+    "model_type": "RandomForestRegressor",
+    "model_version": "1.0.0",
+    "target": {
+        "name": "Consumer_Total_MomentaryFuel",
+        "unit": "kg/s",
+        "description": "Predicted momentary total fuel consumption"
+    },
+    "features": [
+        {
+            "name": "Ship_SpeedThroughWater",
+            "unit": "m/s"
+        },
+        {
+            "name": "Environment_SeaFloorDepth",
+            "unit": "m"
+        },
+        {
+            "name": "Weather_Temperature2M",
+            "unit": "°C"
+        },
+        {
+            "name": "Weather_WindSpeed10M",
+            "unit": "m/s"
+        },
+        {
+            "name": "Weather_WaveHeight",
+            "unit": "m"
+        },
+        {
+            "name": "Weather_WavePeriod",
+            "unit": "s"
+        },
+        {
+            "name": "Weather_OceanCurrentVelocity",
+            "unit": "m/s"
+        }
+    ],
+    "model_parameters": {
+        "n_estimators": 200,
+        "max_depth": 20,
+        "min_samples_leaf": 5,
+        "random_state": 42,
+        "n_jobs": -1
+    },
+    "validation": {
+        "test_samples": 20599,
+        "mae_kg_per_s": 0.049754,
+        "rmse_kg_per_s": 0.068637,
+        "r2": 0.981724
+    },
+    "prediction_range_on_test": {
+        "minimum_kg_per_s": 0.283246,
+        "maximum_kg_per_s": 2.151121,
+        "mean_kg_per_s": 0.996342
+    },
+    "actual_target_range_on_test": {
+        "minimum_kg_per_s": 0.194,
+        "maximum_kg_per_s": 1.995206,
+        "mean_kg_per_s": 0.987272
+    },
+    "training_samples": 82395,
+    "feature_count": 7,
+    "created_at": "2026-08-31T17:48:27"
+}
