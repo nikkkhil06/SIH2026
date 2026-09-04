@@ -1,24 +1,98 @@
-import {useNavigate} from "react-router-dom";
-import {result,comparison} from "../data/mockData";
+import { useLocation, useNavigate } from "react-router-dom";
 
-export default function Results(){
- const navigate=useNavigate(); const max=Math.max(...comparison.map(x=>x.value));
- return <div>
-  <section className="heading"><button className="back" onClick={()=>navigate("/optimize")}>← Modify Scenario</button><span className="eyebrow">OPTIMIZATION COMPLETE</span><h1>Recommended Fleet Strategy</h1><p>Scenario S001 • Balanced objective</p></section>
-  <div className="recommend card"><div><span>RECOMMENDED VESSEL</span><h2>{result.vessel}</h2><p>{result.fuel} • {result.speed} knots</p></div><b>✓ Feasible Solution</b></div>
-  <section className="grid4">
-   <div className="card stat"><span>Predicted Fuel</span><strong>{result.predictedFuel.toLocaleString()}</strong><small>kg</small></div>
-   <div className="card stat"><span>Estimated Cost</span><strong>₹{result.cost.toLocaleString()}</strong><small>per scenario</small></div>
-   <div className="card stat"><span>Estimated GHG</span><strong>{result.emissions.toLocaleString()}</strong><small>kg CO₂e</small></div>
-   <div className="card stat"><span>Cruising Speed</span><strong>{result.speed}</strong><small>knots</small></div>
-  </section>
-  <section className="columns">
-   <div className="card"><span className="eyebrow">FUEL SCENARIO COMPARISON</span><h2>Predicted consumption</h2>
-    {comparison.map(x=><div className="barrow" key={x.fuel}><span>{x.fuel}</span><div><i style={{width:(x.value/max*100)+"%"}} className={x.fuel===result.fuel?"recommended":""}/></div><b>{x.value.toLocaleString()}</b></div>)}
-   </div>
-   <div className="card"><span className="eyebrow">CONSTRAINT CHECK</span><h2>Operational feasibility</h2>
-    {["Cargo requirement","Schedule requirement","Available vessel","Selected fuel scenario"].map(x=><div className="check" key={x}>✓ <span>{x}</span><b>Satisfied</b></div>)}
-   </div>
-  </section>
- </div>;
+export default function Results() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const data = location.state;
+
+  if (!data) {
+    return (
+      <section className="empty-result">
+        <span className="eyebrow">NO SCENARIO SELECTED</span>
+        <h1>No optimization scenario found.</h1>
+        <p>Create a new optimization scenario to view its results.</p>
+        <button className="primary" onClick={() => navigate("/optimize")}>
+          Create Scenario
+        </button>
+      </section>
+    );
+  }
+
+  return (
+    <>
+      <section className="heading">
+        <button className="back" onClick={() => navigate("/optimize")}>
+          ← Back to Optimization
+        </button>
+        <span className="eyebrow">OPTIMIZATION SCENARIO</span>
+        <h1>Scenario created successfully.</h1>
+        <p>
+          Your optimization request has been submitted to the backend optimization service.
+        </p>
+      </section>
+
+      <section className="card scenario-card">
+        <div>
+          <span className="result-label">SCENARIO ID</span>
+          <h2>{data.scenario_id}</h2>
+          <p>{data.message}</p>
+        </div>
+        <span className="status-badge">{data.status}</span>
+      </section>
+
+      <section className="columns">
+        <div className="card">
+          <h2>Scenario inputs</h2>
+
+          <div className="result-row">
+            <span>Cargo Demand</span>
+            <b>{data.input.cargo_demand} tonnes</b>
+          </div>
+
+          <div className="result-row">
+            <span>Distance</span>
+            <b>{data.input.distance} nautical miles</b>
+          </div>
+
+          <div className="result-row">
+            <span>Maximum Time</span>
+            <b>{data.input.max_time} hours</b>
+          </div>
+
+          <div className="result-row">
+            <span>Objective</span>
+            <b>{data.input.objective}</b>
+          </div>
+        </div>
+
+        <div className="card highlight">
+          <h2>What happens next?</h2>
+          <p>
+            The backend will use fleet database information and the optimization
+            engine to determine the optimal vessel, fuel and operating strategy.
+          </p>
+
+          <div className="process-list">
+            <div><span>01</span><p>Scenario created</p></div>
+            <div><span>02</span><p>Optimizer processes the scenario</p></div>
+            <div><span>03</span><p>Optimal fleet strategy generated</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="card pending-card">
+        <span className="eyebrow">CURRENT STATUS</span>
+        <h2>Optimization is pending.</h2>
+        <p>
+          The scenario has been successfully sent to the backend.
+          Detailed vessel, fuel, speed, fuel consumption, cost and emission
+          results will appear here once the optimizer is connected.
+        </p>
+
+        <button className="primary" onClick={() => navigate("/optimize")}>
+          Create Another Scenario
+        </button>
+      </section>
+    </>
+  );
 }

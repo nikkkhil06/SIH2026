@@ -1,25 +1,96 @@
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import StatCard from "../components/StatCard";
-import {stats} from "../data/mockData";
 
-export default function Dashboard(){
- const navigate=useNavigate();
- return <div>
-  <section className="hero">
-   <div><span className="eyebrow">FLEET OPTIMIZATION PLATFORM</span>
-   <h1>Make every voyage <em>greener.</em></h1>
-   <p>Predict fuel consumption and find the best vessel, speed and fuel combination while respecting operational constraints.</p></div>
-   <button className="primary" onClick={()=>navigate("/optimize")}>Create Scenario →</button>
-  </section>
-  <section className="grid4">{stats.map(s=><StatCard key={s.title}{...s}/>)}</section>
-  <section className="columns">
-   <div className="card"><span className="eyebrow">RECENT ACTIVITY</span><h2>Optimization Scenarios</h2>
-    {["S001 • V07 • LNG","S002 • V03 • Methanol","S003 • V11 • LNG"].map(x=><div className="row" key={x}><span>{x}</span><b>✓ Completed</b></div>)}
-   </div>
-   <div className="card highlight"><span className="eyebrow">CORE WORKFLOW</span><h2>Prediction → Optimization → Decision</h2>
-    <p>Operational data is used to predict fuel consumption, then the optimizer searches for the best feasible fleet strategy.</p>
-    <div className="flow"><span>Data</span>→<span>ML</span>→<span>Optimizer</span>→<span>Decision</span></div>
-   </div>
-  </section>
- </div>;
+export default function Dashboard() {
+  const navigate = useNavigate();
+
+  const stats = [
+    { title: "Active Vessels", value: "0", description: "Fleet currently monitored" },
+    { title: "Fuel Saved", value: "0", description: "Compared with baseline" },
+    { title: "CO₂ Reduction", value: "0", description: "Across optimized voyages" },
+    { title: "Scenarios", value: "0", description: "Optimization scenarios" }
+  ];
+
+  const recentScenarios = [
+    { id: "S10241", route: "Mumbai → Dubai", objective: "Balanced", status: "Completed" },
+    { id: "S10240", route: "Singapore → Mumbai", objective: "Emissions", status: "Completed" },
+    { id: "S10239", route: "Chennai → Colombo", objective: "Fuel", status: "Completed" }
+  ];
+
+  const workflow = [
+    { number: "01", title: "Input data", description: "Cargo, distance and time requirements" },
+    { number: "02", title: "Fuel prediction", description: "Predict consumption under conditions" },
+    { number: "03", title: "Optimization", description: "Find the best feasible combination" },
+    { number: "04", title: "Decision", description: "Select the greener fleet strategy" }
+  ];
+
+  return (
+    <>
+      <section className="hero">
+        <div>
+          <span className="eyebrow">GREEN FLEET INTELLIGENCE</span>
+          <h1>Plan cleaner voyages<br />with <em>better decisions.</em></h1>
+          <p>
+            Predict fuel consumption and optimize fleet decisions
+            using operational, environmental and business constraints.
+          </p>
+        </div>
+        <button className="primary" onClick={() => navigate("/optimize")}>
+          Create Scenario
+        </button>
+      </section>
+
+      <section className="grid4">
+        {stats.map((item, index) => (
+          <StatCard key={index} title={item.title} value={item.value} description={item.description} />
+        ))}
+      </section>
+
+      <section className="columns">
+        <div className="card">
+          <h2>Recent optimization scenarios</h2>
+          {recentScenarios.map((scenario) => (
+            <div className="row" key={scenario.id}>
+              <div>
+                <b>{scenario.id}</b>
+                <p>{scenario.route}</p>
+              </div>
+              <div>
+                <span>{scenario.objective}</span>
+                <small>{scenario.status}</small>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="card highlight">
+          <h2>How GreenFleetQ works</h2>
+          <p>
+            The platform connects fuel prediction with
+            multi-objective fleet optimization.
+          </p>
+          <div className="flow">
+            <span>Prediction</span><i>→</i>
+            <span>Optimization</span><i>→</i>
+            <span>Decision</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="card">
+        <h2>Optimization workflow</h2>
+        <div className="workflow">
+          {workflow.map((item) => (
+            <div className="workflow-item" key={item.number}>
+              <span>{item.number}</span>
+              <div>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
+  );
 }

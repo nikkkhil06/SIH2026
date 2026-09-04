@@ -1,39 +1,196 @@
-import {useState} from "react";
-import {useNavigate} from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function Optimization(){
- const navigate=useNavigate();
- const [form,setForm]=useState({cargo:"15000",distance:"800",time:"36",objective:"balanced"});
- const [fuels,setFuels]=useState(["Diesel","LNG","Methanol"]);
- const [vessels,setVessels]=useState(["V01","V02","V03","V07"]);
+export default function Optimization() {
+  const navigate = useNavigate();
 
- const toggle=(arr,setter,item)=>setter(arr.includes(item)?arr.filter(x=>x!==item):[...arr,item]);
- const change=e=>setForm({...form,[e.target.name]:e.target.value});
+  const [form, setForm] = useState({
+    cargo_demand: "",
+    distance: "",
+    max_time: "",
+    objective: "balanced"
+  });
 
- return <div>
-  <section className="heading"><span className="eyebrow">OPTIMIZATION ENGINE</span><h1>Create Optimization Scenario</h1>
-  <p>Enter voyage requirements and let the system find a feasible vessel-speed-fuel configuration.</p></section>
-  <form className="columns" onSubmit={e=>{e.preventDefault();navigate("/results")}}>
-   <div className="card">
-    <h2>Voyage Requirements</h2>
-    <div className="formgrid">
-     <label>Cargo Demand (tonnes)<input name="cargo" type="number" value={form.cargo} onChange={change}/></label>
-     <label>Distance (nautical miles)<input name="distance" type="number" value={form.distance} onChange={change}/></label>
-     <label>Maximum Time (hours)<input name="time" type="number" value={form.time} onChange={change}/></label>
-    </div>
-    <h3>Available Vessels</h3>
-    <div className="choices">{["V01","V02","V03","V07","V11","V15"].map(v=><button type="button" className={vessels.includes(v)?"choice selected":"choice"} onClick={()=>toggle(vessels,setVessels,v)} key={v}>{v}</button>)}</div>
-    <h3>Fuel Options</h3>
-    <div className="choices">{["Diesel","LNG","Methanol","Hydrogen","Ammonia"].map(f=><button type="button" className={fuels.includes(f)?"choice selected":"choice"} onClick={()=>toggle(fuels,setFuels,f)} key={f}>{f}</button>)}</div>
-   </div>
-   <div className="card">
-    <h2>Optimization Objective</h2>
-    {[
-      ["fuel","Minimum Fuel"],["cost","Minimum Cost"],["emissions","Minimum Emissions"],["balanced","Balanced"]
-    ].map(([value,label])=><label className="radio" key={value}><input type="radio" name="objective" value={value} checked={form.objective===value} onChange={change}/><div><b>{label}</b><small>{value==="balanced"?"Balance fuel, cost and emissions.":"Prioritize "+label.toLowerCase()+"."}</small></div></label>)}
-    <div className="constraint"><b>✓ Constraints enforced</b><small>Cargo and schedule requirements must remain satisfied.</small></div>
-    <button className="primary full" type="submit">🚀 Optimize Fleet</button>
-   </div>
-  </form>
- </div>;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm({
+      ...form,
+      [name]: value
+    });
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+
+    if (
+      form.cargo_demand === "" ||
+      form.distance === "" ||
+      form.max_time === ""
+    ) {
+      setError("Please fill all voyage requirements.");
+      return;
+    }
+
+    const requestData = {
+      cargo_demand: Number(form.cargo_demand),
+      distance: Number(form.distance),
+      max_time: Number(form.max_time),
+      objective: form.objective
+    };
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        "http://127.0.0.1:8000/optimization/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestData)
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Optimization request failed.");
+      }
+
+      const data = await response.json();
+
+      navigate("/results", {
+        state: {
+          scenario_id: data.scenario_id,
+          status: data.status,
+          message: data.message,
+          input: requestData
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      setError(
+        "Unable to connect to the optimization server. Please make sure the backend is running."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <section className="heading">
+        <span className="eyebrow">OPTIMIZATION SCENARIO</span>
+        <h1>Create a fleet optimization scenario.</h1>
+        <p>
+          Enter the voyage requirements. The optimization engine
+          will determine the suitable vessel and fuel combination.
+        </p>
+      </section>
+
+      <form onSubmit={handleSubmit}>
+        <section className="card">
+          <h2>Voyage requirements</h2>
+          <p className="section-description">
+            These values define the operational requirements for the optimization problem.
+          </p>
+
+          <div className="formgrid">
+            <label>
+              Cargo Demand
+              <span className="unit">tonnes</span>
+              <input
+                type="number"
+                name="cargo_demand"
+                value={form.cargo_demand}
+                onChange={handleChange}
+                placeholder="15000"
+                min="0"
+              />
+            </label>
+
+            <label>
+              Distance
+              <span className="unit">nautical miles</span>
+              <input
+                type="number"
+                name="distance"
+                value={form.distance}
+                onChange={handleChange}
+                placeholder="800"
+                min="0"
+              />
+            </label>
+
+            <label>
+              Maximum Time
+              <span className="unit">hours</span>
+              <input
+                type="number"
+                name="max_time"
+                value={form.max_time}
+                onChange={handleChange}
+                placeholder="36"
+                min="0"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="card">
+          <h2>Optimization objective</h2>
+          <p className="section-description">
+            Select what the optimizer should prioritize.
+          </p>
+
+          <div className="objective-grid">
+            <label className="objective-card">
+              <input type="radio" name="objective" value="fuel"
+                checked={form.objective === "fuel"} onChange={handleChange} />
+              <div><b>Fuel</b><small>Minimize fuel consumption</small></div>
+            </label>
+
+            <label className="objective-card">
+              <input type="radio" name="objective" value="cost"
+                checked={form.objective === "cost"} onChange={handleChange} />
+              <div><b>Cost</b><small>Minimize operational cost</small></div>
+            </label>
+
+            <label className="objective-card">
+              <input type="radio" name="objective" value="emissions"
+                checked={form.objective === "emissions"} onChange={handleChange} />
+              <div><b>Emissions</b><small>Minimize environmental impact</small></div>
+            </label>
+
+            <label className="objective-card">
+              <input type="radio" name="objective" value="balanced"
+                checked={form.objective === "balanced"} onChange={handleChange} />
+              <div><b>Balanced</b><small>Balance fuel, cost and emissions</small></div>
+            </label>
+          </div>
+        </section>
+
+        <section className="constraint">
+          <b>Optimizer-controlled decisions</b>
+          <small>
+            Vessel selection, fuel type and operating conditions will be
+            determined automatically using fleet database information and the optimization engine.
+          </small>
+        </section>
+
+        {error && <div className="error-box">{error}</div>}
+
+        <button type="submit" className="primary full" disabled={loading}>
+          {loading ? "Creating optimization scenario..." : "Optimize Fleet →"}
+        </button>
+
+        <p className="form-note">
+          The scenario will be sent to the backend optimization service.
+        </p>
+      </form>
+    </>
+  );
 }
